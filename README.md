@@ -14,6 +14,12 @@ Note: Remember to configure the branch protection rule and select the `LFS-warni
 
 Required, set's the file size limit threshold in bytes. Default "10MB".
 
+#### `message`
+
+Optional, sets the error message in the comment in case a large file is found. Default is
+
+    Please store those files outside of git or consider using git-lfs.
+
 ## Outputs
 
 #### `lfsFiles `
@@ -25,7 +31,37 @@ Returns an array of possible detected large file(s)
 Consume the action by referencing the stable branch
 
 ```yaml
-uses: actionsdesk/lfs-warning@v1.1
+uses: fridim/lfs-warning@v1.1
 with:
   filesizelimit: '10485760' # 10 MB is 10485760 Bytes
+```
+
+Full example:
+
+```yaml
+name: LFS check
+
+on:
+  pull_request:
+    branches: [ development ]
+
+jobs:
+  lfs-warning:
+
+    name: Check size of files in commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Repo Code
+        id: get_repo_code
+        uses: actions/checkout@v1
+      - name: Run lfs-warning
+        uses: fridim/lfs-warning@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filesizelimit: '400000' # ~400KB
+          message: >-
+            Please store those files outside of git and get them in the code,
+            for example using the `get_url` ansible module or simply `curl`.
+
 ```
