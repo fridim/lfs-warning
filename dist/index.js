@@ -608,6 +608,14 @@ ${errorMessage}`
             core.setFailed(`Large File detected! Setting PR status to failed.`)
 
           } else {
+              await labels.forEach(label => {
+                  octokit.issues.removeLabel({
+                      owner,
+                      repo,
+                      issue_number: issue_pr_number,
+                      name: label
+                  })
+              });
             console.log("No large file(s) detected...")
           }
 
