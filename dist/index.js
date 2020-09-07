@@ -503,12 +503,16 @@ const labels = ["lfs-detected!"]
 // most @actions toolkit packages have async methods
 async function run() {
   try {
+        const errorMessage = core.getInput("message")
+
+        console.log(`Default configured message is set to "${errorMessage}"`)
+
         const fsl = core.getInput("filesizelimit")
 
         console.log(`Default configured filesizelimit is set to ${fsl} bytes...`)
         console.log(`Name of Repository is ${repo} and the owner is ${owner}`)
         console.log(`Triggered event is ${event_type}`)
-        
+
         // Get LFS Warning Label
         let lfslabelObj = {}
         try {
@@ -577,13 +581,14 @@ async function run() {
             console.log("Detected large file(s):")
             console.log(lfsFile)
 
-            let lfsFileNames = lfsFile.join(", ")
-            let bodyTemplate = `## :warning: Possible large file(s) detected :warning: \n
-            The following file(s) exceeds the file size limit: ${fsl} bytes, as set in the .yml configuration files
-            
-            ${lfsFileNames.toString()}
+            let lfsFileNames = lfsFile.join("\n* ")
+            let bodyTemplate = `## :warning: Possible large file(s) detected :warning:
 
-            Consider using git-lfs as best practises to track and commit file(s)`
+The following file(s) exceeds the file size limit: ${fsl} bytes, as set in the .yml configuration files
+
+* \`${lfsFileNames.toString()}\`
+
+${errorMessage}`
 
             await octokit.issues.addLabels({
               owner,
@@ -600,7 +605,7 @@ async function run() {
             })
 
             core.setOutput("lfsFiles", lfsFile)
-            core.setFailed(`Large File detected! Setting PR status to failed. Consider using git-lfs to track the LFS files`)
+            core.setFailed(`Large File detected! Setting PR status to failed.`)
 
           } else {
             console.log("No large file(s) detected...")
